@@ -84,8 +84,6 @@ async def get_needed_info(data: ObjectEFRSBListAdapter, db: Database) -> list[di
             decision_date = court_decree.findtext('DecisionDate',
                                                   default='') if court_decree is not None else ''
 
-            if full_name == 'Воробьев Илья Юрьевич':
-                print('Воробьев Илья Юрьевич', decree_name)
             if decree_name == 'о завершении реализации имущества гражданина':
                 type_message = 'Сообщение о завершении реализации имущества гражданина'
             else:
