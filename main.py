@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from logging.handlers import RotatingFileHandler
 
 from aiogram import Bot, Dispatcher
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -20,7 +21,12 @@ async def main():
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
                         handlers=[
-                            logging.FileHandler(LOG_FILE, encoding="utf-8"),
+                            RotatingFileHandler(
+                                filename=LOG_FILE,
+                                maxBytes=5 * 1024 * 1024,  # 5 MB
+                                backupCount=3,
+                                encoding="utf-8"
+                            ),
                             logging.StreamHandler()
                         ])
 

@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -9,6 +10,9 @@ from openpyxl import load_workbook
 from app.data.config import OSINT_1_TOKEN
 from app.database.requests import Database
 from app.utils.generate_xlsx import generate_new_xlsx
+
+
+logger = logging.getLogger(__name__)
 
 
 async def fetch_data_dyxless(query: str, token: str = OSINT_1_TOKEN):
@@ -27,9 +31,10 @@ async def fetch_data_dyxless(query: str, token: str = OSINT_1_TOKEN):
             async with session.post(url, headers=headers, json=payload) as response:
                 response.raise_for_status()
                 result = await response.json(encoding='utf-8')
+            logger.info(f'Успешно получены данные из dyxless для query={query}')
             return result
         except aiohttp.ClientError as e:
-            print(f"Ошибка запроса: {e}")
+            logger.exception(f"Ошибка в получении данных dyxless при query={query}")
             return None
 
 
@@ -38,6 +43,7 @@ async def update_db(db: Database, revision: int, phones: list[str], emails: list
         await db.add_phone_to_delo(delo_id=revision, phone_number=phone)
     for email in emails:
         await db.add_email_to_delo(delo_id=revision, email_address=email)
+    logger.info(f'Добавлены данные в БД из dyxless для revision={revision}')
 
 
 async def add_info(db: Database, file_id: str, bot: Bot):
@@ -74,6 +80,7 @@ async def add_info(db: Database, file_id: str, bot: Bot):
     for row in range(2, last_row + 1):
         data = f"{ws.cell(row=row, column=inn_col).value}"
         revision = int(ws.cell(row=row, column=revision_col).value)
+        logger.info(f'Анализ dyxless для строки {row} из {last_row} (revision={revision})')
         res = await fetch_data_dyxless(query=data)
         phones = set()
         emails = set()
