@@ -12,7 +12,7 @@ from app.keyboards.choose_osint_kb import choose_osint_ikb
 from app.states.get_dates_st import GetDates
 from app.texts.buttons import ERROR_INPUTTING_DATES
 from app.texts.callback_datas import GET_DATES_CBD
-from app.texts.messages import INPUT_DATES_RANGE_TEXT, WAIT_TEXT, CHOOSE_OSNIT_TEXT
+from app.texts.messages import INPUT_DATES_RANGE_TEXT, WAIT_TEXT, CHOOSE_OSNIT_TEXT, ERROR_EFRSB
 from app.utils.efrsb.parse_data import get_objects_in_date_range
 
 router = Router()
@@ -48,9 +48,13 @@ async def get_dates(message: Message, state: FSMContext, db: Database):
     await state.clear()
     file_name = await get_objects_in_date_range(date_1=date1, date_2=date2, db=db)
     await del_msg.delete()
-    file = FSInputFile(file_name)
-    res = await message.answer_document(document=file, caption=CHOOSE_OSNIT_TEXT, reply_markup=choose_osint_ikb)
-    if os.path.exists(file_name):
-        os.remove(file_name)
-    logger.info(f'Пользователю {message.from_user.id} отправлен файл {file_name} в промежутке дат {str(date1)} - {str(date2)}')
+    if file_name is None:
+        res = await message.answer(ERROR_EFRSB)
+        logger.info(f'Ошибка получения данных с ЕФРСБ')
+    else:
+        file = FSInputFile(file_name)
+        res = await message.answer_document(document=file, caption=CHOOSE_OSNIT_TEXT, reply_markup=choose_osint_ikb)
+        if os.path.exists(file_name):
+            os.remove(file_name)
+        logger.info(f'Пользователю {message.from_user.id} отправлен файл {file_name} в промежутке дат {str(date1)} - {str(date2)}')
     return res

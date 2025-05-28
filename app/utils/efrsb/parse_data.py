@@ -201,6 +201,8 @@ async def get_objects_in_date_range(date_1: datetime, date_2: datetime, db: Data
         while True:
             res = await get_async_request(db=db, min_revision=min_revision, portion_size=step)
             min_revision -= step
+            if res is None:
+                return None
             if res[0]['publish_date'].date() < date_1.date():
                 logger.info("Обновили before_date1")
                 before_date1 = (res[0]['publish_date'], res[0]['revision'])
@@ -217,6 +219,8 @@ async def get_objects_in_date_range(date_1: datetime, date_2: datetime, db: Data
         while True:
             res = await get_async_request(db=db, min_revision=min_revision, portion_size=step)
             min_revision += step
+            if res is None:
+                return None
             if res[-1]['publish_date'].date() > date_2.date():
                 logger.info("Обновили after_date2")
                 after_date2 = (res[-1]['publish_date'], res[-1]['revision'])
@@ -230,7 +234,9 @@ async def get_objects_in_date_range(date_1: datetime, date_2: datetime, db: Data
 
         # если нет всех 2000 (step) объектов в бд, то делаем запрос
         if not all(rev in all_revisions_in_db for rev in range(min_revision, min_revision + step + 1)):
-            await get_async_request(db=db, min_revision=min_revision, portion_size=step)
+            res = await get_async_request(db=db, min_revision=min_revision, portion_size=step)
+            if res is None:
+                return None
         else:
             logger.info(f'Все объекты с {min_revision} по {min_revision + step} есть в БД')
 
