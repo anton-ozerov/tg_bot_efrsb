@@ -184,14 +184,13 @@ async def get_nearest_values(db: Database, date1: datetime, date2: datetime):
     logger.info("Получены ближайшие даты")
     return {
         "before_date1": before_date1,
-        "after_date2": after_date2,
-        "all_efrsb": data
+        "after_date2": after_date2
     }
 
 
 async def get_objects_in_date_range(date_1: datetime, date_2: datetime, db: Database):
     dates = await get_nearest_values(db, date_1, date_2)
-    before_date1, after_date2, all_efrsb = dates['before_date1'], dates['after_date2'], dates['all_efrsb']
+    before_date1, after_date2 = dates['before_date1'], dates['after_date2']
     step = 2000
 
     # сначала идем от before_date1 до date_1, если before_date1 > date_1 (не было подходящей даты)
@@ -228,7 +227,7 @@ async def get_objects_in_date_range(date_1: datetime, date_2: datetime, db: Data
 
     logger.info("Проходимся по остаткам ЕФРСБ")
     # а тут проходимся по всем оставшимся
-    all_revisions_in_db = [delo.id for delo in all_efrsb]
+    all_revisions_in_db = [delo.id for delo in await db.get_all_efrsb()]
     for i in range(before_date1[1], after_date2[1], step):
         min_revision = i
 
