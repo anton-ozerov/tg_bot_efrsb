@@ -1,4 +1,5 @@
 import logging
+import xml.etree.ElementTree
 import xml.etree.ElementTree as ET
 from datetime import datetime
 
@@ -15,7 +16,11 @@ logger = logging.getLogger(__name__)
 async def get_needed_info(data: ObjectEFRSBListAdapter, db: Database) -> list[dict]:
     all_objts = []
     for obj in data:
-        root = ET.fromstring(obj.body)
+        try:
+            root = ET.fromstring(obj.body)
+        except xml.etree.ElementTree.ParseError:
+            await append_delo_db(db=db, revision=obj.revision, publish_date=obj.publish_date, fullname='incorrect')
+            continue
         # Общие данные по банкроту
         bankrupt = root.find('.//BankruptPerson')
         fio = bankrupt
