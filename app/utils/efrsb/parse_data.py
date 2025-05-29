@@ -21,6 +21,9 @@ async def get_needed_info(data: ObjectEFRSBListAdapter, db: Database) -> list[di
         except xml.etree.ElementTree.ParseError:
             await append_delo_db(db=db, revision=obj.revision, publish_date=obj.publish_date, fullname='incorrect')
             continue
+        except Exception as e:
+            await append_delo_db(db=db, revision=obj.revision, publish_date=obj.publish_date, fullname='incorrect')
+            continue
         # Общие данные по банкроту
         bankrupt = root.find('.//BankruptPerson')
         fio = bankrupt
